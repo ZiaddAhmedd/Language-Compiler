@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  lex-yacc-compiler:
+    build: .
+    volumes:
+      - ./src:/app
+
+volumes:
+  src:
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/src

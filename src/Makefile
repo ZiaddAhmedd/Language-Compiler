@@ -1,6 +1,7 @@
 all:
 	flex Lexer.l
-	gcc lex.yy.c
+	bison -d -t Parser.y
+	gcc lex.yy.c parser.tab.c
 	a.exe
 
 clean:

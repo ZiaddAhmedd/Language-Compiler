@@ -3,6 +3,7 @@
 #include "Parser.tab.h"
 #include <stdio.h>
 // int yylval;
+int yyerror(char *s); 
 %}
 %%
 
@@ -12,14 +13,15 @@
 
 "while"                     {return WHILE;}
 "for"                       {return FOR;}
-"do"                        {return DO;}
+"repeat"                    {return REPEAT;}
+"until"                     {return UNTIL;}
 
 "switch"                    {return SWITCH;}
 "case"                      {return CASE;}
 "default"                   {return DEFAULT;}
 
 "break"                     {return BREAK;}
-"continue"                  {return CONTINUE;}
+
 
 "return"                    {return RETURN;}
 
@@ -59,7 +61,11 @@
 "*"                         {return MUL;}
 "/"                         {return DIV;}
 "%"                         {return MOD;}
+"++"                        {return INC;}
+"--"                        {return DEC;}
 
+    /* Semi Colon and colon */
+[:;,]                         {return yytext[0];}
 
 
     /* punctuators (brackets and stuff like that) */
@@ -70,19 +76,21 @@
 [_a-zA-Z][_a-zA-Z0-9]*       {return ID;}               /* might need to return the variable name itself */
 
     /* Numbers */
-(0|[1-9][0-9]+)                       {return INTEGER;}             /* might need to return the number itself
+(0|[1-9][0-9]*)                       {return INTEGER_NUMBER;}             /* might need to return the number itself
                                                                     Don't accept leading zeros */
 
-(0|[1-9][0-9]*)\.[0-9]+               {return FLOATING_POINT;}      /* might need to return the number itself */
+(0|[1-9][0-9]*)\.[0-9]+               {return FLOATING_POINT_NUMBER;}      /* might need to return the number itself */
 
     /* String Literals */
-\"[a-zA-Z0-9]\"                       {return STRING_LITERAL;}      /* might need to return the string itself */
+\"[_!\.@%&#$?^~'a-zA-Z0-9 ]*\"                       {return STRING_LITERAL;}      /* might need to return the string itself */
     
     /* Character Literals */
 \'[a-zA-Z0-9]\'                       {return CHAR_LITERAL;}        /* might need to return the character itself */
 
 
     /* Comments - Might add later if needed to handle comments */ 
+\/\/[^\n]*                            {;}                  /* for single line comment do nothing */
+\/\*([^*]|\*[^\/])*\*\/               {;}                  /* for multi line comment do nothing */
 
     /* Whitespaces */
 [ \t]+                                 {;}                  /* for space or tab do nothing */

@@ -1,0 +1,5 @@
+
+src/Parser.tab.c
+src/Parser.tab.h
+src/lex.yy.c
+src/a.exe

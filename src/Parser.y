@@ -99,10 +99,15 @@ function :  type ID '(' argList ')' '{' manyStatements RETURN  expression  ';'  
                                                                                             printf("==========\nfunction body\n");	
                                                                                         }
 
-    |       VOID ID '(' argList ')' '{' manyStatements RETURN  ';'   '}'            {
-                                                                                            printf("==========\nvoid function body\n");	
-                                                                                        }
+    |       VOID ID '(' argList ')' '{' manyStatements returnCase '}'            {printf("==========\nvoid function body\n");	}
     ;
+
+
+returnCase:
+        RETURN ';'    		                    {printf("==========\nempty return\n");}	 
+    |                                           {printf("==========\nNo return\n");}	 
+    ;
+;
 
 
 callFunction: ID '(' callList ')' ';'		{
@@ -201,15 +206,15 @@ unaryExpression : ID INC         {}   // i++ or i-- for example
 
 
 booleanExpression: expression AND expression        {
-														printf("==========\nand expression\n");
+														printf("==========\nAND expression\n");
 													}
 															
 			| expression OR expression             	{
-														printf("==========\nor expression\n");
+														printf("==========\nOR expression\n");
 													}
 
 			| NOT expression                        {
-														printf("==========\nnot expression\n");
+														printf("==========\nNOT expression\n");
 													}
 
 			| DataValues GT DataValues       {
@@ -258,14 +263,22 @@ expression:	DataValues{}
 		| booleanExpression{};
 
 caseExpression:	
-            DEFAULT ':' manyStatements BREAK ';'    		     {printf("==========\nDefault case Statment\n");}	 	                   
-    |       CASE INTEGER_NUMBER ':' manyStatements BREAK ';' caseExpression 	 {printf("==========\nNon-default case Statment\n");}	 
+            caseDefault 	                   
+    |       CASE INTEGER_NUMBER ':' manyStatements BREAK ';' caseExpression  {printf("==========\nCase Statment\n");}
 		      ;
 
 
+caseDefault:
+            DEFAULT ':' manyStatements    		     {printf("==========\nDefault case Statment\n");}	 
+    |                                                            {printf("==========\nNon-default case Statment\n");}	 
+              ;
+    ;
 
 
-elseQuad:{}blockScope           // either empty or a blockScope
+
+elseQuad:
+                {} 
+    |   blockScope      {}        // either empty or a blockScope       ----> might remove the ability to have an empty else statement. i.e will force him to put {}
 
 
 

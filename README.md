@@ -58,7 +58,8 @@ ENUM SCOPE: ID ASSIGN INTEGER, ENUM SCOPE
 TYPE ID (ARGLIST) {many statements RETURN EXPRESSION} 
 EX: int Func (int y, int z) {int sum = y + z; return sum;}
 EX: int Func () {int sum = y + z; return sum;}
-NOTE: function has to have at least 1 statement
+NOTE: function has to have at least 1 statement other than the return
+NOTE: In case a function is not void, it must have a return statement
 
 VOID ID (ARGLIST) {many statements RETURNCASE}
 EX: void Func (int y, int z) {y = 5; z = 6; return;}

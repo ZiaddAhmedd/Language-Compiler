@@ -7,14 +7,14 @@ CONST TYPE ID ASSIGN EXPRESSION; --> EX: const int x = 5;
 ```
 ## Mathematical and logical expressions.
 ```
-STMT ADD STMT; --> EX: x + y;
-STMT SUB STMT; --> EX: x - y;
-STMT MUL STMT; --> EX: x * y;
-STMT DIV STMT; --> EX: x / y;
-STMT MOD STMT; --> EX: x % y;
+ID ASSIGN STMT ADD STMT; --> EX: int z = x + y;
+ID ASSIGN STMT SUB STMT; --> EX: int z = x - y;
+ID ASSIGN STMT MUL STMT; --> EX: int z = x * y;
+ID ASSIGN STMT DIV STMT; --> EX: int z = x / y;
+ID ASSIGN STMT MOD STMT; --> EX: int z = x % y;
 ID INC; --> EX: x++;
 ID DEC; --> EX: x--;
-( STMT ) --> EX: (x + y);
+ID ASSIGN ( STMT ) --> EX: int z = (x + y);
 ```
 ## Assignment statement.
 ```
@@ -42,7 +42,8 @@ FOR ( INT ID ASSIGN INTEGER ; EXPRESSION ; UNARY EXPRESSION ) {many statements} 
 ```
 ### SWITCH statement.
 ```
-SWITCH ( ID ) {many statements} EX: switch (x) {case 1: y = 1; break; case 2: y = 2; break; default: y = 3; break;}
+SWITCH ( ID ) {many statements} EX: switch (x) {case 1: y = 1; break; case 2: y = 2; break; default: y = 3;}
+NOTE: Do NOT place a break in the default
 ```
 ## Enums
 ```
@@ -55,19 +56,25 @@ ENUM SCOPE: ID ASSIGN INTEGER, ENUM SCOPE
 
 ```
 TYPE ID (ARGLIST) {many statements RETURN EXPRESSION} 
-EX: int x (int y, int z) {return y + z;}
+EX: int Func (int y, int z) {int sum = y + z; return sum;}
+EX: int Func () {int sum = y + z; return sum;}
+NOTE: function has to have at least 1 statement
 
 VOID ID (ARGLIST) {many statements RETURNCASE}
-EX: void x (int y, int z) {y = 5; z = 6; return;}
+EX: void Func (int y, int z) {y = 5; z = 6; return;}
+EX: void Func (int y, int z) {y = 5;}
+EX: void Func () {y = 5; z = 6; return;}
 
 ARGLIST: TYPE ID, ARGLIST | TYPE ID |
 RETURNCASE: RETURN; | 
 ```
 ### Function call.
 ```
-ID (CALL LIST); EX: x (5, 6);
-ID ASSIGN ID (CALL LIST); EX: x = FUNC(5, 6);
-TYPE ID ASSIGN ID (CALL LIST); EX: int x = FUNC(5, 6);
+NOTE: you cannot pass variables by value. Func(4,5) is not allowed for example.
+ID (CALL LIST); EX: func (a, b);
+ID ASSIGN ID (CALL LIST); EX: x = FUNC(a, b);
+TYPE ID ASSIGN ID (CALL LIST); EX: int x = FUNC(a, b);
+                               EX: int x = FUNC();
 
 CALL LIST: ID , CALL LIST | ID |
 ```

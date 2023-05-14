@@ -28,6 +28,7 @@
 
 
 "return"                    {return RETURN;}
+"exit"                      {return EXIT;}
 
 
 "enum"                      {return ENUM;}

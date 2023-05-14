@@ -1,9 +1,13 @@
 
 %{
-#include "Parser.tab.h"
-#include <stdio.h>
-// int yylval;
-int yyerror(char *s); 
+    #include "Parser.tab.h"
+    #include <stdlib.h>
+    #include <stdio.h>
+    #include<string.h>
+    // int yylval;
+    int yyerror(char *s); 
+    extern int yylineno;
+	int yylex();
 %}
 %%
 
@@ -73,19 +77,18 @@ int yyerror(char *s);
 
     /* Identifiers */
 
-[_a-zA-Z][_a-zA-Z0-9]*       {return ID;}               /* might need to return the variable name itself */
+[_a-zA-Z][_a-zA-Z0-9]*       {yylval.ID=strdup(yytext);return ID;}               /* returns variable name as well */
 
     /* Numbers */
-(0|[1-9][0-9]*)                       {return INTEGER_NUMBER;}             /* might need to return the number itself
-                                                                    Don't accept leading zeros */
+(0|[1-9][0-9]*)                       {yylval.IntegerValue = atoi(yytext); return INTEGER_NUMBER;}             /* Don't accept leading zeros */
 
-(0|[1-9][0-9]*)\.[0-9]+               {return FLOATING_POINT_NUMBER;}      /* might need to return the number itself */
+(0|[1-9][0-9]*)\.[0-9]+               {yylval.FloatValue = atof(yytext); return FLOATING_POINT_NUMBER;}      
 
     /* String Literals */
-\"[_!\.@%&#$?^~'a-zA-Z0-9 ]*\"                       {return STRING_LITERAL;}      /* might need to return the string itself */
+\"[_!\.@%&#$?^~'a-zA-Z0-9 ]*\"                       {yylval.StringValue=strdup(yytext); return STRING_LITERAL;}    /* strdup: duplicates the string and returns pointer to it */
     
     /* Character Literals */
-\'[a-zA-Z0-9]\'                       {return CHAR_LITERAL;}        /* might need to return the character itself */
+\'[a-zA-Z0-9]\'                       {yylval.CharValue=strdup(yytext); return CHAR_LITERAL;}        
 
 
     /* Comments - Might add later if needed to handle comments */ 
@@ -96,7 +99,7 @@ int yyerror(char *s);
 [ \t]+                                 {;}                  /* for space or tab do nothing */
 
     /* Newline */
-(\n)+                                  {;}          /* for newline we will increment number of line (in later phase)*/
+(\n)                                  {yylineno = yylineno+1;}          /* for newline we increment number of line*/
 
     /* other stuff */ 
 .                                      {yyerror("Unknown character");}  /* for any other thing return error*/

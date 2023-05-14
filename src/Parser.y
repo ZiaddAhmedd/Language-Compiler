@@ -4,9 +4,17 @@
     int yyerror(char *s); 
 %}
 %union{
-    int num;
-    char sym;
+	int IntegerValue;               /* integer value */
+	float FloatValue;               /* float Value */
+    char * StringValue;             /* string value */
+	char * CharValue;               /* character value */
+	char * ID ;                    	/*IDENTIFIER Value */
+
+    // int num;
+    // char sym;
 }
+
+
 
 // Keywords
 %token IF ELSE WHILE FOR REPEAT UNTIL SWITCH CASE DEFAULT BREAK RETURN ENUM
@@ -48,6 +56,12 @@
 %left AND OR NOT
 %left ADD SUB 
 %left MUL DIV MOD
+
+%token <IntegerValue> INTEGER 
+%token <FloatValue> FLOATNUMBER 
+%token <StringValue> TEXT 
+%token <CharValue> CHARACTER 
+%token <ID>     IDENTIFIER
 
 
 
@@ -312,7 +326,7 @@ int main() {
 }
 
 int yyerror(char *s) {
-    printf("\nERROR: %s\n", s);
+    printf("\nerror in line: %d, ERROR: %s\n",yylineno+1, s);
 
     return 0;
 }

@@ -16,7 +16,7 @@
 	int caseCounter=1;
 	int switchNumber=0;
 	int whileNumber=0;
-	int doWhileNumber=0;
+	int repeatUntilNumber=0;
 	int forLoopNumber=0;
 	int funcLabelCounter=1;
 	FILE * outputFile;
@@ -403,7 +403,7 @@ returnCase:
 callFunction: ID '(' resetCounter callList ')' ';'		{
 															printf("==========\nCalling function within scope\n");
 															int num =checkArgType(ArgCounter,FuncArgTypes,$1,SCOPE_Number);
-															if(num == -25)
+															if(num == -404)
 															{
 																ThrowError("Error: undefined Function With Name ",$1);
 															}
@@ -487,7 +487,7 @@ scopeOpen :	{
 
 scopeClose :{
 				$$=NULL;
-				DeadSymbols(SCOPE_Number);
+				DeadSymbols(SCOPE_Number);		// lazy delete
 				SCOPE_Number--;
 			}		
 

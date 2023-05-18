@@ -3,7 +3,7 @@
 	#include <stdlib.h>
 	#include <stdarg.h>
 	#include <string.h>	
-	#include"SymbolTableAndQuads.h"
+	#include"TableQuad.h"
 
 	int yyerror(char *);
 	int yylex(void);
@@ -33,7 +33,7 @@
 	void CreateID(int type , char*rName,int rID,int ScopeNum);			// -- Create a Symbol given its type and Name 
 	void  getIDENTIFIER(char*rName,int ScopeNum);						//--  set Symbol Value to be Initilized. 
 	void usedIDENTIFIER(char*rName,int ScopeNum );					    //--  set that Symbol is Used as a RHS in any operation 
-	char * conctanteStr(char* str1,char*str2);							//--  a function to conctante two strings 
+	char * concatenateStr(char* str1,char*str2);							//--  a function to conctante two strings 
 	bool checktypeIDENTIFER(int LeftType,int RightType);	//--  Check Left and Right hand side in Assigment operation;
 	char* idtypeString[10] = { "Integer", "Float", "Char", "String", "Bool", "ConstIntger", "ConstFloat", "ConstChar", "ConstString", "ConstBool" };
 	int FuncArgTypes[10];												//Assuming Max 10 arguments 
@@ -49,7 +49,7 @@
 	float FloatValue;               /* float Value */
     char * StringValue;             /* string value */
 	char * CharValue;               /* character value */
-	char * ID ;                    	/*IDENTIFIER Value */
+	char * ID ;                    	/* IDENTIFIER Value */
 
 	int * dum;
 	struct TypeAndValue * T_V;
@@ -104,9 +104,9 @@
 %token <ID>     ID
 
 %type <IntegerValue> type   
-%type  <dum> stmt function callFunction blockScope manyStatements scopeOpen scopeClose unaryExpression caseExpression caseDefault elseIf
-%type  <T_V> equalStmt booleanExpression DataValues expression
-
+%type  <dum> stmt unaryExpression function caseExpression caseDefault blockScope manyStatements scopeOpen scopeClose elseIf
+%type  <T_V> equalStmt expression DataValues booleanExpression callFunction
+// T_V : Type_Value
 
 
 %%

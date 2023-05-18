@@ -552,12 +552,12 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 			fprintf(f, "endIfLabel%s: \n", ptr->DATA->Arg1);
 			ptr = ptr->Next;
 			break;
-		case DOWHILE_:
-			fprintf(f, "OpenDoWhile%s: \n", ptr->DATA->Arg2);
+		case REPEATUNTIL_:
+			fprintf(f, "OpenRepeatUntil%s: \n", ptr->DATA->Arg2);
 			ptr = ptr->Next;
 			break;
-		case CLOSEDOWHILE_:
-			fprintf(f, "JT OpenDoWhile%s \n", ptr->DATA->Arg1);     // 8albn hn5leeha JF bs xD
+		case CLOSEREPEATUNTIL_:
+			fprintf(f, "JF OpenRepeatUntil%s \n", ptr->DATA->Arg1);     // 8albn hn5leeha JF bs xD (DONE)
 			ptr = ptr->Next;
 			break;
 		case LESSTHAN_:

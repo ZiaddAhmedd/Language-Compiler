@@ -119,6 +119,7 @@ void setFuncArg(int ArgCount, int * ArgTypes, SymbolData * rD)
 {
     // ArgCount: count of arguments
     // ArgTypes: array containing argument types
+		// rD: the symbol data of the function
 	rD->ArrTypes = (int *)malloc(sizeof(int)*ArgCount);
 	int i;
 	for (i = 0; i < ArgCount; i++)
@@ -133,7 +134,7 @@ void setFuncArg(int ArgCount, int * ArgTypes, SymbolData * rD)
 int checkArgType(int ArgCount, int * ArgTypes, char * rString,int Scope)
 {
     // rstring: name of the function
-    
+
     // check each type is valid
 	SymbolNode * rD = getID(rString,Scope);
 	if (rD == NULL) return -404;     // no Decleared Function with this Name
@@ -153,6 +154,7 @@ int checkArgType(int ArgCount, int * ArgTypes, char * rString,int Scope)
 
 void DeadSymbols(int Brace)
 {
+	// to delete all symbols in the scope of the closing brace
 	SymbolNode * Walker = ListTop;
 	while (Walker)
 	{
@@ -198,7 +200,7 @@ void WriteUsed(FILE *f)
 void WriteNotUsed(FILE *f)
 {
 	SymbolNode * Walker = ListTop;
-	fprintf(f, "UnUsed Identifiers :- \n");
+	fprintf(f, "Unused Identifiers :- \n");
 	while (Walker)
 	{
 		if (!(Walker->DATA->Used))
@@ -214,7 +216,7 @@ void WriteNotUsed(FILE *f)
 void WriteInitilized(FILE *f)
 {
 	SymbolNode * Walker = ListTop;
-	fprintf(f, "Initilized Identifiers :- \n");
+	fprintf(f, "Initialized Identifiers :- \n");
 	while (Walker)
 	{
 		if (Walker->DATA->Initilzation)
@@ -230,7 +232,7 @@ void WriteInitilized(FILE *f)
 void WriteNotInit(FILE *f)
 {
 	SymbolNode * Walker = ListTop;
-	fprintf(f, "UnInitilized Identifiers :- \n");
+	fprintf(f, "Uninitialized Identifiers :- \n");
 	while (Walker)
 	{
 		if (!(Walker->DATA->Initilzation))
@@ -248,6 +250,7 @@ QuadNode*TopPtr = NULL;
 
 void setQuad(int Op, char* Arg1, char* Arg2,char*Result,int rID)
 {
+	// basically a constructor
 	struct QuadData *data = (struct QuadData*) malloc(sizeof(struct QuadData));
 	data->OpCode = Op;
 	data->Arg1 = Arg1;
@@ -259,8 +262,10 @@ void setQuad(int Op, char* Arg1, char* Arg2,char*Result,int rID)
 
 void InsertQuadruple(QuadData*rD, int ID)
 {
+	// Insert from Begining in the linked list
 	if (!TopPtr)
 	{
+		// first node
 	struct QuadNode *myQuadlNode = (struct QuadNode*) malloc(sizeof(struct QuadNode));
 	TopPtr = myQuadlNode;
 	myQuadlNode->ID = ID;
@@ -290,13 +295,14 @@ void WriteQuads(FILE * f)
 
 QuadNode*getTOP()
 {
+	// return the top of the list
 	return TopPtr;
 }
 
-Reg CheckReg();
-void SetReg(Reg x);
-void ResetReg();
-Reg reg[7];
+Reg CheckReg(); // return the free register	
+void SetReg(Reg x); // set the register to be used
+void ResetReg(); // reset all registers to be free
+Reg reg[7]; // array of registers (We consider having 7 registers)
 
 void AssemblyGenerator(QuadNode* head,FILE *f)
 {
@@ -721,6 +727,7 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 void ResetReg()
 {
 	int i;// for c
+	// reset all registers to be free
 	for ( i = 0; i<7; i++)
 	{
 		Reg x;
@@ -740,6 +747,7 @@ void ResetReg()
 void SetReg(Reg x)
 {
 	int i;
+	// set the register to be used
 	for ( i = 0; i<7; i++)
 	{
 		if (reg[i].reg == x.reg)
@@ -751,6 +759,7 @@ void SetReg(Reg x)
 }
 Reg CheckReg()
 {
+	// return the free register
 	Reg min = reg[0];
 	if (min.var == "0")
 	{
@@ -776,6 +785,7 @@ Reg CheckReg()
 
 void DestroyQuadsList()
 {
+	// for memory optimization
 	QuadNode *Walker = TopPtr;
 	while (Walker)
 	{

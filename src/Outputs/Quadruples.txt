@@ -1,0 +1,8 @@
+OpCode: 23  Arg1: 0  Arg2: 0 Result: OpenEnum 
+OpCode: 0  Arg1:    Arg2:   Result: c 
+OpCode: 1  Arg1: 4  Arg2:   Result: c 
+OpCode: 0  Arg1:    Arg2:   Result: b 
+OpCode: 1  Arg1: 2  Arg2:   Result: b 
+OpCode: 0  Arg1:    Arg2:   Result: a 
+OpCode: 1  Arg1: 0  Arg2:   Result: a 
+OpCode: 73  Arg1: 0  Arg2: ENDENUM Result:  

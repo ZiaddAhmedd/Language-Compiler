@@ -1,0 +1,14 @@
+ENUM0: 
+MOV R0, NULL		; Empties the register 
+MOV c, R0 
+MOV R1, 4 
+MOV c, R1 
+MOV R2, NULL		; Empties the register 
+MOV b, R2 
+MOV R3, 2 
+MOV b, R3 
+MOV R4, NULL		; Empties the register 
+MOV a, R4 
+MOV R5, 0 
+MOV a, R5 
+CLOSEENUM0: 

@@ -1,0 +1,14 @@
+Used Identifiers :- 
+
+Unused Identifiers :- 
+a of type ConstIntger
+b of type ConstIntger
+c of type ConstIntger
+
+Initialized Identifiers :- 
+a of type ConstIntger
+b of type ConstIntger
+c of type ConstIntger
+
+Uninitialized Identifiers :- 
+

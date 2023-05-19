@@ -67,7 +67,7 @@ SymbolNode *  getID(char * Identifiyer, int rBraceSCope)
 	return NULL;
 }
 
-bool CheckIDENTIFYER(char * ID)
+bool CheckIDENTIFYER(char * ID, int scopeNum)
 {
     // Checks that no two identifiers have the same name, in the same scope
 	SymbolNode * Walker = ListTop;
@@ -76,8 +76,9 @@ bool CheckIDENTIFYER(char * ID)
 	//start from the beginning
 	while (Walker)
 	{
-		if ((strcmp(ID, Walker->DATA->IdentifierName) == 0) && !(Walker->DATA->BracesScope==-1))
+		if ((strcmp(ID, Walker->DATA->IdentifierName) == 0) && !(Walker->DATA->BracesScope==-1) && (Walker->DATA->BracesScope == scopeNum))
 		{
+			// if same name & declared (not deleted) & in the same scope, then give error
             // BracesScope is placed = -1 when closing a scope (lazy delete)
             // so if not = -1, then we are still in the same scope
 			return true;        // invalid
@@ -119,7 +120,7 @@ void setFuncArg(int ArgCount, int * ArgTypes, SymbolData * rD)
 {
     // ArgCount: count of arguments
     // ArgTypes: array containing argument types
-		// rD: the symbol data of the function
+	// rD: the symbol data of the function
 	rD->ArrTypes = (int *)malloc(sizeof(int)*ArgCount);
 	int i;
 	for (i = 0; i < ArgCount; i++)
@@ -246,7 +247,7 @@ void WriteNotInit(FILE *f)
 }
 
 //---------------------------------------Quadruples------------------------
-QuadNode*TopPtr = NULL;
+QuadNode*TopPtr = NULL;		// (head) top of the list
 
 void setQuad(int Op, char* Arg1, char* Arg2,char*Result,int rID)
 {
@@ -262,25 +263,27 @@ void setQuad(int Op, char* Arg1, char* Arg2,char*Result,int rID)
 
 void InsertQuadruple(QuadData*rD, int ID)
 {
-	// Insert from Begining in the linked list
+	// Insert from Begining (if empty) in the linked list
 	if (!TopPtr)
 	{
 		// first node
-	struct QuadNode *myQuadlNode = (struct QuadNode*) malloc(sizeof(struct QuadNode));
-	TopPtr = myQuadlNode;
-	myQuadlNode->ID = ID;
-	myQuadlNode->DATA = rD;
-	TopPtr->Next = NULL;
-	return;
+		struct QuadNode *myQuadlNode = (struct QuadNode*) malloc(sizeof(struct QuadNode));
+		TopPtr = myQuadlNode;
+		myQuadlNode->ID = ID;
+		myQuadlNode->DATA = rD;
+		TopPtr->Next = NULL;
+		return;
 	}
+
 	struct QuadNode *Walker = TopPtr;
 	while (Walker->Next)
 		Walker = Walker->Next;// get the last node
+	
 	struct QuadNode *myQuadlNode = (struct QuadNode*) malloc(sizeof(struct QuadNode));
 	myQuadlNode->ID = ID;
 	myQuadlNode->DATA = rD;
 	myQuadlNode->Next = NULL;
-	Walker->Next = myQuadlNode; // insert ath the end
+	Walker->Next = myQuadlNode; // insert at the end
 }
 
 void WriteQuads(FILE * f)
@@ -288,7 +291,7 @@ void WriteQuads(FILE * f)
 	struct QuadNode *Walker = TopPtr;
 	while (Walker)
 	{
-		fprintf(f, " OpCode: %d  Arg1: %s  Arg2: %s Result: %s \n", Walker->DATA->OpCode, Walker->DATA->Arg1, Walker->DATA->Arg2, Walker->DATA->Result);
+		fprintf(f, "OpCode: %d  Arg1: %s  Arg2: %s Result: %s \n", Walker->DATA->OpCode, Walker->DATA->Arg1, Walker->DATA->Arg2, Walker->DATA->Result);
 		Walker = Walker->Next;
 	}
 }
@@ -302,7 +305,7 @@ QuadNode*getTOP()
 Reg CheckReg(); // return the free register	
 void SetReg(Reg x); // set the register to be used
 void ResetReg(); // reset all registers to be free
-Reg reg[7]; // array of registers (We consider having 7 registers)
+Reg reg[8]; // array of registers (We consider having 8 registers)
 
 void AssemblyGenerator(QuadNode* head,FILE *f)
 {
@@ -317,21 +320,21 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 		{
 		case DECLARE_:
 			free = CheckReg();
-			if (ptr->DATA->Arg1 == " " && ptr->DATA->Arg2 == " ")
-			{
-				fprintf(f, "MOV %s , %s \n", free.reg,"NULL");
-				fprintf(f, "MOV %s , %s \n", ptr->DATA->Result,free.reg);
-			}
-			else if (ptr->DATA->Arg1 != " ") 
-			{
-				fprintf(f, "MOV %s , %s \n", free.reg,ptr->DATA->Arg1);
-				fprintf(f, "MOV %s , %s \n", ptr->DATA->Result, free.reg);
-			}
-			else if (ptr->DATA->Arg2 != " ") 
-			{
-				fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
-				fprintf(f, "MOV %s , %s \n", ptr->DATA->Result, free.reg);
-			}
+			// if (strcmp(ptr->DATA->Arg1, " ")  == 0 && strcmp(ptr->DATA->Arg2, " ") == 0)
+			// {
+			fprintf(f, "MOV %s, %s \n", free.reg,"NULL		; Empties the register");
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result,free.reg);
+			// }
+			// else if (ptr->DATA->Arg1 != " ") 
+			// {
+			// 	fprintf(f, "MOV %s, %s \n", free.reg,ptr->DATA->Arg1);
+			// 	fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			// }
+			// else if (ptr->DATA->Arg2 != " ") 
+			// {
+			// 	fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			// 	fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			// }
 			free.used++;
 			free.var = ptr->DATA->Result;
 			SetReg(free);
@@ -340,12 +343,12 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 		case ASSIGN_:
 			free = CheckReg();
 			if (ptr->DATA->Arg1 != " ") {
-				fprintf(f, "MOV %s , %s \n", free.reg,ptr->DATA->Arg1);
-				fprintf(f, "MOV %s , %s \n", ptr->DATA->Result, free.reg);
+				fprintf(f, "MOV %s, %s \n", free.reg,ptr->DATA->Arg1);
+				fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
 			}
 			else if (ptr->DATA->Arg2 != " ") {
-				fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
-				fprintf(f, "MOV %s , %s \n", ptr->DATA->Result, free.reg);
+				fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+				fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
 			}
 			free.used++;
 			free.var = ptr->DATA->Result;
@@ -355,83 +358,83 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 		case ADD_:
 			free = CheckReg();
 			Aux = free;
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
-			fprintf(f, "ADD %s , %s , %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			fprintf(f, "ADD %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case MINUS_:
 			free = CheckReg();
 			Aux = free;
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
-			fprintf(f, "SUB %s , %s , %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			fprintf(f, "SUB %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case MULTIPLY_:
 			free = CheckReg();
 			Aux = free;
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
-			fprintf(f, "IMUL %s , %s , %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			fprintf(f, "IMUL %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case DIVIDE_:
 			free = CheckReg();
 			Aux = free;
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
-			fprintf(f, "DIV %s , %s , %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			fprintf(f, "DIV %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case REM_:
 			free = CheckReg();
 			Aux = free;
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
-			fprintf(f, "REM %s , %s , %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			fprintf(f, "REM %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case INC_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Result);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Result);
 			fprintf(f, "INC %s \n", free.reg);
-			fprintf(f, "MOV %s , %s \n", ptr->DATA->Result,free.reg);
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result,free.reg);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
@@ -439,9 +442,9 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 			break;
 		case DEC_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Result);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Result);
 			fprintf(f, "DEC %s \n", free.reg);
-			fprintf(f, "MOV %s , %s \n", ptr->DATA->Result,free.reg);
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result,free.reg);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			SetReg(free);
@@ -466,8 +469,8 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 			{
 				free = CheckReg();
 				fprintf(f, "Case%s: \n",ptr->DATA->Arg1);
-				fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Result);
-				fprintf(f, "CMP %s , %s \n", free.reg, ptr->DATA->Arg1);
+				fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Result);
+				fprintf(f, "CMP %s, %s \n", free.reg, ptr->DATA->Arg1);
 				free.used++;
 				free.var = ptr->DATA->Arg2;
 				SetReg(free);
@@ -563,140 +566,148 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 			ptr = ptr->Next;
 			break;
 		case CLOSEREPEATUNTIL_:
-			fprintf(f, "JF OpenRepeatUntil%s \n", ptr->DATA->Arg1);     // 8albn hn5leeha JF bs xD (DONE)
+			fprintf(f, "JF OpenRepeatUntil%s \n", ptr->DATA->Arg1);     // JF (DONE)
+			ptr = ptr->Next;
+			break;
+		case ENUM_:
+			fprintf(f, "ENUM%s: \n", ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case CLOSEENUM_:
+			fprintf(f, "CLOSEENUM%s: \n", ptr->DATA->Arg1);
 			ptr = ptr->Next;
 			break;
 		case LESSTHAN_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "CMPL %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "CMPL %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case GREATERTHAN_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "CMPG %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "CMPG %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case LESSTHANOREQUAL_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "CMPLEQ %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "CMPLEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case GREATERTHANOREQUAL_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "CMPGEQ %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "CMPGEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case EQUALEQUAL_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "CMPEQ %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "CMPEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case NOTEQUAL_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "CMPNEQ %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "CMPNEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case AND_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "AND %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "AND %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case OR_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			free.used++;
 			free.var = ptr->DATA->Arg1;
 			SetReg(free);
 			Aux = CheckReg();
-			fprintf(f, "MOV %s , %s \n", Aux.reg, ptr->DATA->Arg2);
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
 			Aux.used++;
 			Aux.var = ptr->DATA->Arg1;
 			SetReg(Aux);
-			fprintf(f, "OR %s, %s , %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			fprintf(f, "OR %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
 			ptr = ptr->Next;
 			break;
 		case NOT_:
 			free = CheckReg();
-			fprintf(f, "MOV %s , %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
 			fprintf(f, "NOT %s \n", free.reg);
-			fprintf(f, "MOV %s , %s \n", ptr->DATA->Result, free.reg);
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
 			free.used++;
 			free.var = ptr->DATA->Arg2;
 			ptr = ptr->Next;
 			SetReg(free);
 			break;
-		case PRINT_:
+		// case PRINT_:
 			//free = CheckReg();
 			//fprintf(f, "PRINT %s \n", free.reg);
-			fprintf(f, "PRINT %s \n", ptr->DATA->Result);
+			// fprintf(f, "PRINT %s \n", ptr->DATA->Result);
 			// free.used++;
 			// free.var = ptr->DATA->Arg2;
 			// SetReg(free);
-			ptr = ptr->Next;
-			break;
+			// ptr = ptr->Next;
+			// break;
 		case OPENFUNC_:
 			if(strcmp(ptr->DATA->Result,"main")==0)
 			{
@@ -724,17 +735,15 @@ void AssemblyGenerator(QuadNode* head,FILE *f)
 		}
 	}
 }
+
 void ResetReg()
 {
-	int i;// for c
+	// int i;// for c
 	// reset all registers to be free
-	for ( i = 0; i<7; i++)
+	for (int i = 0; i<8; i++)
 	{
-		Reg x;
-		x.var = "0";
-		x.used = 0;
-		reg[i].used=x.used;
-		reg[i].var=x.var;
+		reg[i].used=0;
+		reg[i].var="0";
 	}
 	reg[0].reg="R0";
 	reg[1].reg="R1";
@@ -743,17 +752,20 @@ void ResetReg()
 	reg[4].reg="R4";
 	reg[5].reg="R5";
 	reg[6].reg="R6";
+	reg[7].reg="R7";
 }
+
 void SetReg(Reg x)
 {
-	int i;
+	// int i;
 	// set the register to be used
-	for ( i = 0; i<7; i++)
+	for (int i = 0; i<8; i++)
 	{
 		if (reg[i].reg == x.reg)
 		{
 			reg[i].used = x.used;
 			reg[i].var = x.var;
+			break;		// found the register, no need to continue looping
 		}
 	}
 }
@@ -761,21 +773,21 @@ Reg CheckReg()
 {
 	// return the free register
 	Reg min = reg[0];
-	if (min.var == "0")
+	if (min.var == "0")		// if the first register is free, return it
 	{
 		return min;
 	}
 	else
 	{
-		int i;
-		for ( i = 0; i<7; i++)
+		for (int i = 0; i<8; i++)
 		{
-			if (reg[i].var == "0")
+			if (reg[i].var == "0")		// if the register is free, return it
 			{
 				return reg[i];
 			}
-			else if (reg[i].used < min.used)
+			else if (reg[i].used < min.used)		// if this condition is never true, return the first register, which is the least used in this case
 			{
+				// this way, next time it will be true (as reg[0] will have the highest used value)
 				min = reg[i];
 			}
 		}

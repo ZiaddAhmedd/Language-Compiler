@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "tablequad.h": "c"
+        "tablequad.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c",
+        "stdbool.h": "c"
     }
 }

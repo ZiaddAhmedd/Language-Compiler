@@ -15,6 +15,7 @@
 	int elseIfNumber=0;
 	int caseCounter=1;
 	int switchNumber=0;
+	int enumNumber=0;
 	int whileNumber=0;
 	int repeatUntilNumber=0;
 	int forLoopNumber=0;
@@ -139,6 +140,49 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 															TempCounter=0;
 															TempIsUsed=false;
 														}
+														// char* idtypeString[10] = { "Integer", "Float", "Char", "String", "Bool", "ConstIntger", "ConstFloat", "ConstChar", "ConstString", "ConstBool" };
+														else if((getSymbolType($1) == 0 && $3->Type == 1))
+														{
+															getIDENTIFIER($1,SCOPE_Number);
+															printf("==========\nAssignment\n");
+															if(TempIsUsed)
+															{
+																setQuad(1,TempArr[TempCounter-1]," ",$1,QuadCount++);	
+															}
+															
+															else
+															{
+																// converting float to int
+																int x = atoi($3->Value);
+																char* str = (char*)malloc(sizeof(char)*10);
+																sprintf(str, "%d", x);
+																setQuad(1,str," ",$1,QuadCount++);
+																// setQuad(1,$3->Value," ",$1,QuadCount++);
+															} 
+															TempCounter=0;
+															TempIsUsed=false;
+														}
+														else if((getSymbolType($1) == 1 && $3->Type == 0))
+														{
+															getIDENTIFIER($1,SCOPE_Number);
+															printf("==========\nAssignment\n");
+															if(TempIsUsed)
+															{
+																setQuad(1,TempArr[TempCounter-1]," ",$1,QuadCount++);	
+															}
+															
+															else
+															{
+																// convert int to float
+																float x = atof($3->Value);
+																char* str = (char*)malloc(sizeof(char)*10);
+																sprintf(str, "%f", x);
+																setQuad(1,str," ",$1,QuadCount++);
+																// setQuad(1,$3->Value," ",$1,QuadCount++);
+															} 
+															TempCounter=0;
+															TempIsUsed=false;
+														}
 														else 
 														{
 															if(getSymbolType($1)==-1)
@@ -172,6 +216,48 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 															TempCounter=0;
 															TempIsUsed=false;
 														}
+														else if((getSymbolType($2) == 0 && $4->Type == 1))
+														{
+															getIDENTIFIER($2,SCOPE_Number);
+															setQuad(0," "," ",$2,QuadCount++);
+															if(TempIsUsed)
+															{
+																setQuad(1,TempArr[TempCounter-1]," ",$2,QuadCount++);			 
+															}		
+															else
+															{
+																// converting float to int
+																int x = atoi($4->Value);
+																char* str = (char*)malloc(sizeof(char)*10);	
+																sprintf(str, "%d", x);
+																setQuad(1,str," ",$2,QuadCount++);
+																// setQuad(1,$4->Value," ",$2,QuadCount++);
+															} 
+															printf("==========\nDeclaration and Assignment\n");
+															TempCounter=0;
+															TempIsUsed=false;
+														}
+														else if((getSymbolType($2) == 1 && $4->Type == 0))
+														{
+															getIDENTIFIER($2,SCOPE_Number);
+															setQuad(0," "," ",$2,QuadCount++);
+															if(TempIsUsed)
+															{
+																setQuad(1,TempArr[TempCounter-1]," ",$2,QuadCount++);			 
+															}		
+															else
+															{
+																// converting int to float
+																float x = atof($4->Value);
+																char* str = (char*)malloc(sizeof(char)*10);
+																sprintf(str, "%f", x);
+																setQuad(1,str," ",$2,QuadCount++);
+																// setQuad(1,$4->Value," ",$2,QuadCount++);
+															} 
+															printf("==========\nDeclaration and Assignment\n");
+															TempCounter=0;
+															TempIsUsed=false;
+														}
 														else
 														{
 															char* str1=concatenateStr($2," of Type ");
@@ -188,10 +274,12 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 															setQuad(0," "," ",$3,QuadCount++);
 															if(TempIsUsed)
 															{
+																printf("TempArr[TempCounter-1]: %s\n",TempArr[TempCounter-1]);
 																setQuad(1,TempArr[TempCounter-1]," ",$3,QuadCount++);
 															}	
 															else
 															{
+																printf("$5 value: %s\n",$5->Value);
 																setQuad(1,$5->Value," ",$3,QuadCount++);
 															} 
 															printf("==========\nConstant Declaration and Assignment\n");
@@ -279,7 +367,16 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 															switchNumber++;
 														}
 
-    | ENUM ID '{' ENUMscope '}' ';'         {printf("==========\nEnum statement\n");}		// hte7tag quadruple
+    | ENUM ID enumQuadruple '{'  ENUMscope '}' ';'      {
+															printf("==========\nEnum statement\n");
+															$$=NULL;
+															char c[3] = {};
+															itoa(enumNumber,c,10);
+															char m[3]={""};
+															char* val=concatenateStr(m,c);
+															setQuad(73,val,"ENDENUM","",QuadCount++);
+															enumNumber++;
+														}		// hte7tag quadruple
     
     | function
 											{
@@ -467,10 +564,74 @@ blockScope:
     ;
 
 ENUMscope:				// hne7tag n3adel fyha 7aga
-            ID ASSIGN INTEGER_NUMBER ',' ENUMscope 		{
+            ID ASSIGN expression ',' ENUMscope 		{
+														// | type ID ASSIGN expression ';'   
+														CreateID(5,$1,IDCount++,SCOPE_Number);		// 5 for const integer
+														if(checktypeIDENTIFER(getSymbolType($1),5))
+														{
+															// getIDENTIFIER($1,SCOPE_Number);
+															setQuad(0," "," ",$1,QuadCount++);
+															if(TempIsUsed)
+															{
+																// printf("==========\nTESTING TEMP IS USED\n");
+																setQuad(1,TempArr[TempCounter-1]," ",$1,QuadCount++);			 
+															}		
+															else
+															{
+																// convert $3 to char *
+																
+																// printf("test = %d\n", $3);
+																// char str1[10];
+																// sprintf(str1, "%d", $3);
+																// printf("myString = %s\n", str1);
+
+																setQuad(1,$3->Value," ",$1,QuadCount++);
+															} 
+															// printf("==========\nDeclaration and Assignment\n");
+															TempCounter=0;
+															TempIsUsed=false;
+														}
+														else
+														{
+															char* str1=concatenateStr($1," of Type ");
+															char* str2=concatenateStr(str1,idtypeString[getSymbolType($1)]);
+															ThrowError("Error: incompatible types ",str2);
+														}
+												
                                                 printf("==========\nENUMscope type 1: has comma\n");
                                             }
-    |       ID ASSIGN INTEGER_NUMBER        {
+    |       ID ASSIGN expression        {
+														CreateID(5,$1,IDCount++,SCOPE_Number);		// 5 for const integer
+														if(checktypeIDENTIFER(getSymbolType($1),5))
+														{
+															// getIDENTIFIER($1,SCOPE_Number);
+															setQuad(0," "," ",$1,QuadCount++);
+															if(TempIsUsed)
+															{
+																// printf("==========\nTESTING TEMP IS USED\n");
+																setQuad(1,TempArr[TempCounter-1]," ",$1,QuadCount++);			 
+															}		
+															else
+															{
+																// convert $3 to char *
+																
+																// printf("test = %d\n", $3);
+																// char str1[10];
+																// sprintf(str1, "%d", $3);
+																// printf("myString = %s\n", str1);
+
+																setQuad(1,$3->Value," ",$1,QuadCount++);
+															} 
+															// printf("==========\nDeclaration and Assignment\n");
+															TempCounter=0;
+															TempIsUsed=false;
+														}
+														else
+														{
+															char* str1=concatenateStr($1," of Type ");
+															char* str2=concatenateStr(str1,idtypeString[getSymbolType($1)]);
+															ThrowError("Error: incompatible types ",str2);
+														}
                                                 printf("==========\nENUMscope type 2: last element (no comma)\n");
                                             }
     ;
@@ -665,12 +826,22 @@ booleanExpression: expression AND expression          	{
 														}
 
 			| DataValues GT DataValues         	{
-															if($1->Type!=$3->Type) 
+															if(!checktypeIDENTIFER($1->Type, $3->Type)) 
 															{
 																ThrowError("Conflict Data types in GREATERTHAN Operation \n "," ");
 															}
 															else	
 															{
+																// char* idtypeString[10] = { "Integer", "Float", "Char", "String", "Bool", "ConstIntger", "ConstFloat", "ConstChar", "ConstString", "ConstBool" };|
+																// printf("Type1 : %d Type2 : %d \n", $1->Type, $3->Type);
+																// printf("Value1: %s Value2: %s \n", $1->Value, $3->Value);
+																// printf("1: %d, 2: %d \n", $1, $3);
+																// printf("atoi($1->Value) : %d, atoi($3->Value) : %d \n", atoi($1->Value), atoi($3->Value));
+																if (atoi($1->Value)<=atoi($3->Value) &&  $1->Type < 5 && $3->Type < 5 && atoi($1->Value) != 0 && atoi($3->Value) != 0)
+																{
+																	printf("Warning : Condition is always false.\n");
+																}
+																
 																$$=(struct TypeAndValue*) malloc(sizeof(struct TypeAndValue));
 																$$->Type=$1->Type;
 																$$->Value=TempArr[TempCounter];
@@ -679,12 +850,16 @@ booleanExpression: expression AND expression          	{
 															}
 														}
 			| DataValues LT DataValues            	{
-															if($1->Type!=$3->Type) 
+															if(!checktypeIDENTIFER($1->Type, $3->Type)) 
 															{
 																ThrowError("Conflict Data types in LESSTHAN Operation \n "," ");
 															}
 															else	 
 															{
+																if (atoi($1->Value)>=atoi($3->Value) &&  $1->Type < 5 && $3->Type < 5 && atoi($1->Value) != 0 && atoi($3->Value) != 0)
+																{
+																	printf("Warning : Condition is always false.\n");
+																}
 																$$=(struct TypeAndValue*) malloc(sizeof(struct TypeAndValue));
 																$$->Type=$1->Type;
 																$$->Value=TempArr[TempCounter];
@@ -693,12 +868,16 @@ booleanExpression: expression AND expression          	{
 															}
 														}
 			| DataValues GEQ DataValues  	{
-															if($1->Type!=$3->Type) 
+															if(!checktypeIDENTIFER($1->Type, $3->Type)) 
 															{
 																ThrowError("Conflict Data types in GREATERTHANOREQUAL Operation \n "," "); 
 															}
 															else	
 															{
+																if (atoi($1->Value)<atoi($3->Value) &&  $1->Type < 5 && $3->Type < 5 && atoi($1->Value) != 0 && atoi($3->Value) != 0)
+																{
+																	printf("Warning : Condition is always false.\n");
+																}
 																$$=(struct TypeAndValue*) malloc(sizeof(struct TypeAndValue));
 																$$->Type=$1->Type;
 																$$->Value=TempArr[TempCounter]; 
@@ -707,12 +886,16 @@ booleanExpression: expression AND expression          	{
 															}
 														}
 			| DataValues LEQ DataValues     	{
-															if($1->Type!=$3->Type) 
+															if(!checktypeIDENTIFER($1->Type, $3->Type)) 
 															{
 																ThrowError("Conflict Data types in LESSTHANOREQUAL Operation \n "," ");
 															}
 															else	 
 															{
+																if (atoi($1->Value)>atoi($3->Value) &&  $1->Type < 5 && $3->Type < 5 && atoi($1->Value) != 0 && atoi($3->Value) != 0)
+																{
+																	printf("Warning : Condition is always false.\n");
+																}
 																$$=(struct TypeAndValue*) malloc(sizeof(struct TypeAndValue));
 																$$->Type=$1->Type; 
 																$$->Value=TempArr[TempCounter];
@@ -721,12 +904,17 @@ booleanExpression: expression AND expression          	{
 															}
 														}
 			| DataValues NEQ DataValues              {
-															if($1->Type!=$3->Type) 
+															if(!checktypeIDENTIFER($1->Type, $3->Type)) 
 															{
 																ThrowError("Conflict Data types in NOTEQUAL Operation \n "," ");
 															}
 															else	 
 															{
+																if (strcmp($1->Value, $3->Value) == 0 &&  $1->Type < 5 && $3->Type < 5 && atoi($1->Value) != 0 && atoi($3->Value) != 0)
+																{
+																	printf("Warning : Condition is always false.\n");
+																}
+
 																$$=(struct TypeAndValue*) malloc(sizeof(struct TypeAndValue));
 																$$->Type=$1->Type;
 																$$->Value=TempArr[TempCounter]; 
@@ -735,12 +923,17 @@ booleanExpression: expression AND expression          	{
 															}
 														}
 			| DataValues EQ DataValues            {
-															if($1->Type!=$3->Type) 
+															if(!checktypeIDENTIFER($1->Type, $3->Type)) 
 															{
 																ThrowError("Conflict Data types in EQUALEQUAL Operation \n "," ");
 															}
 															else	 
 															{
+																if (strcmp($1->Value, $3->Value) != 0 &&  $1->Type < 5 && $3->Type < 5 && atoi($1->Value) != 0 && atoi($3->Value) != 0)
+																{
+																	printf("Warning : Condition is always false.\n");
+																}
+															
 																$$=(struct TypeAndValue*) malloc(sizeof(struct TypeAndValue));
 																$$->Type=$1->Type; 
 																$$->Value=TempArr[TempCounter];
@@ -791,7 +984,7 @@ caseExpression:
 
 caseDefault:
             DEFAULT ':'     		     {char c[3] = {}; itoa(switchNumber,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(71,val,"","DefaultCase",QuadCount++);}
-			manyStatements 				{$$=NULL;printf(" Default case statment\n");}
+			manyStatements 				{$$=NULL;printf("Default case statment\n");}
 
     |                                                            {printf("==========\nNon-default case Statment\n");}	 
               ;
@@ -807,6 +1000,9 @@ repeatQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; 
 inRepeatUntil: expression {TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
 		;
 
+enumQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(enumNumber,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(23,strdup(c),val,"OpenEnum",QuadCount++);}
+		;
+
 forQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(forLoopNumber,c2,10); char m[3]={""}; char* val=concatenateStr(m,c2); setQuad(21,strdup(c),val,"OpenForLoop1",QuadCount++);} expression {char c[3] = {};sprintf(c,"%d",SCOPE_Number);char c2[3] = {}; itoa(forLoopNumber,c2,10); char m[3]={""}; char* val=concatenateStr(m,c2); setQuad(21,strdup(c),val,"OpenForLoop2",QuadCount++);TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
 		;
 
@@ -816,7 +1012,15 @@ funcQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number);char c2[3] = {}; ito
 switchQuadruple: ID {SwitchValue=strdup($1);setQuad(61,"SwitchStart","",$1,QuadCount++);usedIDENTIFIER($1,SCOPE_Number);}
 		;
 
-ifQuadruple: expression {char c[3] = {}; itoa(labelCounter,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(60,"IF ","OpenIf",val,QuadCount++);TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
+ifQuadruple: expression {
+							char c[3] = {};
+							itoa(labelCounter,c,10);
+							char m[3]={""};
+							char* val=concatenateStr(m,c);
+							setQuad(60,"IF ","OpenIf",val,QuadCount++);
+							TempCounter=0;
+							TempIsUsed=false;		//to prevent assignning a temp to a variable
+						}		
 		;
 
 elseIfQuadruple: {char c[3] = {}; itoa(labelCounter,c,10); char m[3]={""}; char* val=concatenateStr(m,c); char c2[3] = {}; itoa(elseIfNumber,c2,10); char m2[3]={""}; char* val2=concatenateStr(m2,c2); setQuad(60,val2,"OpenElseIf1",val,QuadCount++);} expression {labelCounter++;char c[3] = {}; itoa(labelCounter,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(60,"IF ","OpenElseIf2",val,QuadCount++);TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
@@ -832,7 +1036,7 @@ elseIf: ELSE IF '(' elseIfQuadruple ')' blockScope elseIf	{$$=NULL;}
 
 void CreateID(int type , char*rName,int rID,int ScopeNum)
 {
-	if(CheckIDENTIFYER(rName))
+	if(CheckIDENTIFYER(rName, ScopeNum))
 	{
 		ThrowError("Already Declared IDENTIFIER with Name ",rName);
 	}
@@ -849,13 +1053,13 @@ void CreateID(int type , char*rName,int rID,int ScopeNum)
 		else 
 		{
 			pushSymbol(rID,rSymbol);
-			printf(" Symbol is created with Name %s \n",rName);
+			printf("Symbol is created with Name %s \n",rName);
 		}
 	}
 }
 void CreateFunction(int type , char*rName,int rID,int ScopeNum,int rArgCounter,int *ArrOfTypes)
 {
-	if(CheckIDENTIFYER(rName))
+	if(CheckIDENTIFYER(rName, ScopeNum))
 	{
 		ThrowError("Already Declared IDENTIFIER with Name ",rName);
 	}
@@ -866,7 +1070,7 @@ void CreateFunction(int type , char*rName,int rID,int ScopeNum,int rArgCounter,i
 			SymbolData* rSymbol=setSymbol(type,0,false,rName,true,ScopeNum);
 			setFuncArg(rArgCounter,ArrOfTypes,rSymbol);
 			pushSymbol(rID,rSymbol);
-			printf(" Symbol Function is created with Name %s \n",rName);
+			printf("Symbol Function is created with Name %s \n",rName);
 		}
 		else
 		{
@@ -883,7 +1087,7 @@ void CreateFunction(int type , char*rName,int rID,int ScopeNum,int rArgCounter,i
 			{
 				setFuncArg(rArgCounter,ArrOfTypes,rSymbol);
 				pushSymbol(rID,rSymbol);
-				printf(" Symbol Function is created with Name %s \n",rName);
+				printf("Symbol Function is created with Name %s \n",rName);
 			}
 		}
 	}
@@ -893,13 +1097,13 @@ void getIDENTIFIER(char*rName,int ScopeNum)
 	SymbolNode * rSymbol=getID(rName, ScopeNum);
 	if(!rSymbol)
 	{
-		ThrowError("Not Declared in This Scope Identifiyer with Name \n ",rName);
+		ThrowError("Not Declared in This Scope Identifier with Name \n ",rName);
 	}
 	else
 	{
 		if(!rSymbol->DATA->Modifiable)
 		{
-			ThrowError("Can't Modify a Constant Identifiyer with Name \n ",rName);
+			ThrowError("Can't Modify a Constant Identifier with Name \n ",rName);
 		}
 			
 		else
@@ -913,22 +1117,22 @@ void usedIDENTIFIER(char*rName,int ScopeNum)
 	SymbolNode * rSymbol=getID(rName, ScopeNum);
 	if(!rSymbol)
 	{
-		ThrowError("Not Declared in This Scope Identifiyer with Name \n ",rName);
+		ThrowError("Not Declared in This Scope Identifier with Name \n ",rName);
 	}
 	else
 	{
 		printf("IDENTIFIER with Name %s is Used \n",rName);
 		if(!rSymbol->DATA->Initilzation)
 		{
-			printf("Warning :IDENTIFIER with Name %s is not Initilized and is being used.  \n",rName);// don't quit, just a warning
+			printf("Warning :IDENTIFIER with Name %s is not Initialized and is being used.  \n",rName);// don't quit, just a warning
 		}
 		rSymbol->DATA->Used=true;
 	}
 }
 bool checktypeIDENTIFER(int LeftType,int RightType)
 {
-	bool correct = ((LeftType==RightType) || (LeftType-5 ==RightType))?true:false; // Checking both constants types and types 
-	return correct;
+	return ((LeftType==RightType) || (LeftType-5 ==RightType) || (LeftType == RightType-5))?true:false; // Checking both constants types and types 
+	
 
 }
 void ThrowError(char *Message, char *rVar)
@@ -962,10 +1166,10 @@ char * concatenateStr(char* str1,char*str2)
 int main(int argc, char *argv[]) {
 	char *path = argv[1];
 	printf("path: %s",path);
-	char* finalPath1 = concatenateStr(path,"\\output.txt");
-	char* finalPath2 = concatenateStr(path,"\\Quadruples.txt");
-	char* finalPath3 = concatenateStr(path,"\\Assembly.txt");
-	char* finalPath4 = concatenateStr(path,"\\Symbol.txt");
+	char* finalPath1 = concatenateStr(path,".\\Outputs\\output.txt");
+	char* finalPath2 = concatenateStr(path,".\\Outputs\\Quadruples.txt");
+	char* finalPath3 = concatenateStr(path,".\\Outputs\\Assembly.txt");
+	char* finalPath4 = concatenateStr(path,".\\Outputs\\Symbol.txt");
 	outputFile=fopen(finalPath1,"w");
 	quadsFile=fopen(finalPath2,"w");
 	assemblyFile=fopen(finalPath3,"w");
@@ -992,7 +1196,7 @@ int main(int argc, char *argv[]) {
 		fclose(quadsFile);
 		fclose(assemblyFile);
 		fclose(symbolFile);
-		printf("\nParsing failed, error in line number:  %d\n",yylineno);
+		printf("\nParsing failed, error in line number:  %d\n",yylineno+1);
 		return 0;
 	}
     return 0;

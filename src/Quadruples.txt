@@ -1,0 +1,2 @@
+ OpCode: 0  Arg1:    Arg2:   Result: x 
+ OpCode: 1  Arg1: 1  Arg2:   Result: x 

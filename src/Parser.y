@@ -3,7 +3,7 @@
 	#include <stdlib.h>
 	#include <stdarg.h>
 	#include <string.h>	
-	#include"TableQuad.h"
+	#include "TableQuad.h"
 
 	int yyerror(char *);
 	int yylex(void);

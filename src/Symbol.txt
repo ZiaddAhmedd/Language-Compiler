@@ -1,0 +1,10 @@
+Used Identifiers :- 
+
+UnUsed Identifiers :- 
+x of type Integer
+
+Initilized Identifiers :- 
+x of type Integer
+
+UnInitilized Identifiers :- 
+

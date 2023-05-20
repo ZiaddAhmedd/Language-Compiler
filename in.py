@@ -1,13 +1,23 @@
-int Func (int y, int z) {int sum = y + z; return sum;}
-int Func2 () {int y = 3; int z = 4; int sum = y + z; return sum;}
-void Func3 (int y, int z) {y = 5; z = 6; return;}
-void Func4 (int y, int z) {y = 5;}
-void Func5 () {int y = 5;  int z = 6; return;}
-int Func6 (int x, int y, int z, int x2, char y2, string z2) {y=3; return y;}
+// Switch
+int y = 0;
+int x = 3;
+switch (x) { case 1: y = 1; break;
+case 2: y = 2; break; default: y = 3;}
 
-int a = 3;
-int b = 4;
-Func (a, b);
-int z = Func2();
-a = Func2();
+// For
+for (int i = 2; i < 3; i++ ) { string x = "Hello World";}
+
+// while
+while ( true ) { int x = 4; int y = x; float z = 3.4;
+float u = 3;}
+
+// repeat until
+char ya = 'a';
+repeat { int xz = 6; ya = 'b'; 
+x++;
+}
+until ( 3 > 4  );
+
+
+exit
 

@@ -130,7 +130,7 @@ typedef struct QuadNode
 
 void InsertQuadruple(QuadData*rD, int ID);
 void setQuad(int Op, char* Arg1, char* Arg2, char*Result, int rID);// i only need to call this in  yacc
-// void AssemblyGenerator(QuadNode* head,FILE *f);
+void AssemblyGenerator(QuadNode* head,FILE *f);
 void WriteQuads(FILE * f);
 QuadNode*getTOP();
 void DestroyQuadsList();

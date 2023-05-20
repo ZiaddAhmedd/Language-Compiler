@@ -1206,11 +1206,11 @@ int main(int argc, char *argv[]) {
 	/* printf("path: %s\n",path); */
 	char* finalPath1 = concatenateStr(path,".\\Outputs\\output.txt");
 	char* finalPath2 = concatenateStr(path,".\\Outputs\\Quadruples.txt");
-	/* char* finalPath3 = concatenateStr(path,".\\Outputs\\Assembly.txt"); */
+	char* finalPath3 = concatenateStr(path,".\\Outputs\\Assembly.txt");
 	char* finalPath4 = concatenateStr(path,".\\Outputs\\Symbol.txt");
 	outputFile=fopen(finalPath1,"w");
 	quadsFile=fopen(finalPath2,"w");
-	/* assemblyFile=fopen(finalPath3,"w"); */
+	assemblyFile=fopen(finalPath3,"w");
 	symbolFile=fopen(finalPath4,"w");
 	if(!yyparse()) 
 	{
@@ -1219,12 +1219,12 @@ int main(int argc, char *argv[]) {
 		DestroySymbolsList();
 		WriteQuads(quadsFile);
 		QuadNode*R=getTOP();
-		/* AssemblyGenerator(R,assemblyFile); */
+		AssemblyGenerator(R,assemblyFile);
 		fprintf(outputFile,"No errors occurred");
 		DestroyQuadsList();
 		fclose(outputFile);
 		fclose(quadsFile);
-		/* fclose(assemblyFile); */
+		fclose(assemblyFile);
 		fclose(symbolFile);
 		return 0;
 	}
@@ -1232,7 +1232,7 @@ int main(int argc, char *argv[]) {
 	{
 		fclose(outputFile);
 		fclose(quadsFile);
-		/* fclose(assemblyFile); */
+		fclose(assemblyFile);
 		fclose(symbolFile);
 		printf("\nParsing failed, error in line number:  %d\n",yylineno+1);
 		return 0;

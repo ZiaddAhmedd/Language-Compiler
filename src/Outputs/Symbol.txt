@@ -1,2 +1,10 @@
-Table was emptied as the program has compilation errors
-line number: 2, Already Declared IDENTIFIER with Name  : y
+Used Identifiers :- 
+
+Unused Identifiers :- 
+x ---> type: Integer, value: (null), Line: 1
+
+Initialized Identifiers :- 
+
+Uninitialized Identifiers :- 
+x ---> type: Integer, value: (null), Line: 1
+

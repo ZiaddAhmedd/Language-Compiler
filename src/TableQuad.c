@@ -375,3 +375,432 @@ Reg CheckReg()
 	}
 }
 
+
+void AssemblyGenerator(QuadNode* head,FILE *f)
+{
+	QuadNode*ptr = head;
+	ResetReg();
+	Reg free;
+	Reg Aux;
+
+	while (ptr != NULL)
+	{
+		switch (ptr->DATA->OpCode)
+		{
+		case DECLARE_:
+			free = CheckReg();
+			// if (strcmp(ptr->DATA->Arg1, " ")  == 0 && strcmp(ptr->DATA->Arg2, " ") == 0)
+			// {
+			fprintf(f, "MOV %s, %s \n", free.reg,"NULL		; Empties the register");
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result,free.reg);
+			// }
+			// else if (ptr->DATA->Arg1 != " ") 
+			// {
+			// 	fprintf(f, "MOV %s, %s \n", free.reg,ptr->DATA->Arg1);
+			// 	fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			// }
+			// else if (ptr->DATA->Arg2 != " ") 
+			// {
+			// 	fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			// 	fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			// }
+			free.used++;
+			free.var = ptr->DATA->Result;
+			SetReg(free);
+			ptr = ptr->Next;
+			break;
+		case ASSIGN_:
+			free = CheckReg();
+			if (ptr->DATA->Arg1 != " ") {
+				fprintf(f, "MOV %s, %s \n", free.reg,ptr->DATA->Arg1);
+				fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			}
+			else if (ptr->DATA->Arg2 != " ") {
+				fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+				fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			}
+			free.used++;
+			free.var = ptr->DATA->Result;
+			SetReg(free);
+			ptr = ptr->Next;
+			break;
+		case ADD_:
+			free = CheckReg();
+			Aux = free;
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			fprintf(f, "ADD %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case MINUS_:
+			free = CheckReg();
+			Aux = free;
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			fprintf(f, "SUB %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case MULTIPLY_:
+			free = CheckReg();
+			Aux = free;
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			fprintf(f, "IMUL %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case DIVIDE_:
+			free = CheckReg();
+			Aux = free;
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			fprintf(f, "DIV %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case REM_:
+			free = CheckReg();
+			Aux = free;
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg1);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg2);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			fprintf(f, "REM %s, %s, %s\n", ptr->DATA->Result,Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case INC_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Result);
+			fprintf(f, "INC %s \n", free.reg);
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result,free.reg);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			ptr = ptr->Next;
+			break;
+		case DEC_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Result);
+			fprintf(f, "DEC %s \n", free.reg);
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result,free.reg);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			SetReg(free);
+			ptr = ptr->Next;
+			break;
+		case SWITCH_:
+			free = CheckReg();
+			fprintf(f, "OpenSwitch \n");
+			ptr = ptr->Next;
+			break;
+		case CASE_:
+			if(strcmp(ptr->DATA->Arg1,"caseSecondTime")==0)
+			{
+				fprintf(f, "JNZ Label%s \n",ptr->DATA->Arg2);
+			}
+			else if(strcmp(ptr->DATA->Arg1,"caseThirdTime")==0)
+			{
+				fprintf(f, "JMP CloseSwitchLabel%s \n",ptr->DATA->Result);
+				fprintf(f, "Label%s: \n",ptr->DATA->Arg2);
+			}
+			else
+			{
+				free = CheckReg();
+				fprintf(f, "Case%s: \n",ptr->DATA->Arg1);
+				fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Result);
+				fprintf(f, "CMP %s, %s \n", free.reg, ptr->DATA->Arg1);
+				free.used++;
+				free.var = ptr->DATA->Arg2;
+				SetReg(free);
+			}
+			ptr = ptr->Next;
+			break;
+		case SWITCHDEFAULT_:
+			fprintf(f, "DefaultCase%s: \n",ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case CLOSESWITCH_:
+			fprintf(f, "CloseSwitch \n");
+			fprintf(f, "CloseSwitchLabel%s: \n",ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case WHILE_:
+			if(strcmp(ptr->DATA->Result,"OpenWhile1")==0)
+			{
+				fprintf(f, "OpenWhileLabel%s: \n",ptr->DATA->Arg2);
+			}
+			else if(strcmp(ptr->DATA->Result,"OpenWhile2")==0)
+			{
+				fprintf(f, "JF CloseWhileLabel%s \n",ptr->DATA->Arg2);
+				fprintf(f, "OpenWhile \n");
+			}
+			ptr = ptr->Next;
+			break;
+		case CLOSEWHILE_:
+			fprintf(f, "JMP OpenWhileLabel%s\n",ptr->DATA->Arg1);
+			fprintf(f, "%s \n",ptr->DATA->Result);
+			fprintf(f, "CloseWhileLabel%s: \n",ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case FOR_:
+			if(strcmp(ptr->DATA->Result,"OpenForLoop1")==0)
+			{
+				fprintf(f, "OpenForLoopLabel%s: \n",ptr->DATA->Arg2);
+			}
+			else if(strcmp(ptr->DATA->Result,"OpenForLoop2")==0)
+			{
+				fprintf(f, "JF CloseForLoopLabel%s \n",ptr->DATA->Arg2);
+				fprintf(f, "OpenForLoop \n");
+			}
+			ptr = ptr->Next;
+			break;
+		case CLOSEFORLOOP_:
+			fprintf(f, "JMP OpenForLoopLabel%s \n",ptr->DATA->Arg1);
+			fprintf(f, "%s \n",ptr->DATA->Result);
+			fprintf(f, "CloseForLoopLabel%s: \n",ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case IF_:
+			if(strcmp(ptr->DATA->Arg2,"OpenIf")==0)
+			{
+				fprintf(f, "JF Label%s \n", ptr->DATA->Result);
+				fprintf(f, "%s \n", ptr->DATA->Arg2);
+				ptr = ptr->Next;
+			}
+			else if(strcmp(ptr->DATA->Arg2,"CloseIf")==0)
+			{
+				fprintf(f, "%s \n", ptr->DATA->Arg2);
+				fprintf(f, "Label%s: \n", ptr->DATA->Result);
+				ptr = ptr->Next;
+			}
+			else if(strcmp(ptr->DATA->Arg2,"OpenElseIf1")==0)
+			{
+				fprintf(f, "%s \n", "CloseIf");
+				fprintf(f, "JMP endIfLabel%s \n", ptr->DATA->Arg1);
+				fprintf(f, "Label%s: \n", ptr->DATA->Result);
+				ptr = ptr->Next;
+			}
+			else if(strcmp(ptr->DATA->Arg2,"OpenElseIf2")==0)
+			{
+				fprintf(f, "JF Label%s \n", ptr->DATA->Result);
+				fprintf(f, "%s \n", "OpenIf");
+				ptr = ptr->Next;
+			}
+			break;
+		case ELSE_:
+			fprintf(f, "%s \n", "CloseIf");
+			fprintf(f, "JMP endIfLabel%s \n", ptr->DATA->Arg2);
+			fprintf(f, "Label%s: \n", ptr->DATA->Result);
+			fprintf(f, "%s \n", "OpenElse");
+			ptr = ptr->Next;
+			break;
+		case CLOSEELSE_:
+			fprintf(f, "%s \n", "CloseElse");
+			fprintf(f, "endIfLabel%s: \n", ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case REPEATUNTIL_:
+			fprintf(f, "OpenRepeatUntil%s: \n", ptr->DATA->Arg2);
+			ptr = ptr->Next;
+			break;
+		case CLOSEREPEATUNTIL_:
+			fprintf(f, "JF OpenRepeatUntil%s \n", ptr->DATA->Arg1);     // JF (DONE)
+			ptr = ptr->Next;
+			break;
+		case ENUM_:
+			fprintf(f, "ENUM%s: \n", ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case CLOSEENUM_:
+			fprintf(f, "CLOSEENUM%s: \n", ptr->DATA->Arg1);
+			ptr = ptr->Next;
+			break;
+		case LESSTHAN_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "CMPL %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case GREATERTHAN_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "CMPG %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case LESSTHANOREQUAL_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "CMPLEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case GREATERTHANOREQUAL_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "CMPGEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case EQUALEQUAL_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "CMPEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case NOTEQUAL_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "CMPNEQ %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case AND_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "AND %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case OR_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			free.used++;
+			free.var = ptr->DATA->Arg1;
+			SetReg(free);
+			Aux = CheckReg();
+			fprintf(f, "MOV %s, %s \n", Aux.reg, ptr->DATA->Arg2);
+			Aux.used++;
+			Aux.var = ptr->DATA->Arg1;
+			SetReg(Aux);
+			fprintf(f, "OR %s, %s, %s \n", ptr->DATA->Result, Aux.reg, free.reg);
+			ptr = ptr->Next;
+			break;
+		case NOT_:
+			free = CheckReg();
+			fprintf(f, "MOV %s, %s \n", free.reg, ptr->DATA->Arg1);
+			fprintf(f, "NOT %s \n", free.reg);
+			fprintf(f, "MOV %s, %s \n", ptr->DATA->Result, free.reg);
+			free.used++;
+			free.var = ptr->DATA->Arg2;
+			ptr = ptr->Next;
+			SetReg(free);
+			break;
+		// case PRINT_:
+			//free = CheckReg();
+			//fprintf(f, "PRINT %s \n", free.reg);
+			// fprintf(f, "PRINT %s \n", ptr->DATA->Result);
+			// free.used++;
+			// free.var = ptr->DATA->Arg2;
+			// SetReg(free);
+			// ptr = ptr->Next;
+			// break;
+		case OPENFUNC_:
+			if(strcmp(ptr->DATA->Result,"main")==0)
+			{
+				fprintf(f, "Openmain \n");
+			}
+			else
+			{
+				fprintf(f, "JMP EndLabel%s \n",ptr->DATA->Arg2);
+				fprintf(f, "%s: \n",ptr->DATA->Result);
+				fprintf(f, "Open%s \n",ptr->DATA->Result);
+			}
+			ptr = ptr->Next;
+			break;
+		case CLOSEFUNC_:
+			fprintf(f, "%s \n",ptr->DATA->Arg1);
+			fprintf(f, "EndLabel%s: \n",ptr->DATA->Arg2);
+			ptr = ptr->Next;
+			break;
+		case CALLFUNC_:
+			fprintf(f, "call %s \n",ptr->DATA->Arg2);
+			ptr = ptr->Next;
+			break;
+		default:
+			break;
+		}
+	}
+}

@@ -1,0 +1,2 @@
+MOV R0, NULL		; Empties the register 
+MOV x, R0 

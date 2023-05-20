@@ -61,7 +61,7 @@ def run_code():
         # print(error)
         error2 = error.decode('utf-8')
         number = error2.split(',')[0].split(' ')[-1] if error2.startswith('line number') else None
-        number = int(number) - 1 if number else None
+        number = int(number)  if number else None       # aw t2reebn int(number) - 1
         if (number):
             outputarea.insert(1.0, f'line {number}: Error')
             highlight_line(textarea, number)

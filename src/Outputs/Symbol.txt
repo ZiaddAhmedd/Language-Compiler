@@ -1,14 +1,18 @@
 Used Identifiers :- 
 
 Unused Identifiers :- 
-a of type ConstIntger
-b of type ConstIntger
-c of type ConstIntger
+y ---> type: Integer, value: (null), Line: 3
+y ---> type: Integer, value: (null), Line: 3
+y ---> type: Integer, value: (null), Line: 3
+x ---> type: Integer, value: (null), Line: 2
+x ---> type: Integer, value: (null), Line: 1
 
 Initialized Identifiers :- 
-a of type ConstIntger
-b of type ConstIntger
-c of type ConstIntger
 
 Uninitialized Identifiers :- 
+y ---> type: Integer, value: (null), Line: 3
+y ---> type: Integer, value: (null), Line: 3
+y ---> type: Integer, value: (null), Line: 3
+x ---> type: Integer, value: (null), Line: 2
+x ---> type: Integer, value: (null), Line: 1
 

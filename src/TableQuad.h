@@ -61,6 +61,7 @@ typedef struct SymbolData
 	bool IsFunctionSymbol;          // representing Function Symbol 
 	int ArgNum;                     // representing Function Arguments Number 
 	int* ArrTypes;                  // representing Function Arguments Types 
+	int LineNum;					// the line in which it was declared
 
 }SymbolData;
 
@@ -74,7 +75,7 @@ typedef struct SymbolNode {
 
 //---------------------------------------- Needed Functions with the Linked List------------------
 
-struct SymbolData* setSymbol(int type, int init, bool used, char * name,bool Modifiable, int ScopeNum);// Get a Symbol Entity
+struct SymbolData* setSymbol(int type, int init, bool used, char * name,bool Modifiable, int ScopeNum, char* Value, int LineNum);// Get a Symbol Entity
 void pushSymbol(int ID, struct SymbolData* data);// to Insert a node in list
 
 
@@ -129,7 +130,7 @@ typedef struct QuadNode
 
 void InsertQuadruple(QuadData*rD, int ID);
 void setQuad(int Op, char* Arg1, char* Arg2, char*Result, int rID);// i only need to call this in  yacc
-void AssemblyGenerator(QuadNode* head,FILE *f);
+// void AssemblyGenerator(QuadNode* head,FILE *f);
 void WriteQuads(FILE * f);
 QuadNode*getTOP();
 void DestroyQuadsList();

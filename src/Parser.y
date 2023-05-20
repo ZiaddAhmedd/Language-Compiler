@@ -31,7 +31,7 @@
 	char * finalPath4;
 	char * finalPath5;
 	void ThrowError(char *Message, char *rVar);							//--  A Function to Terminate the Program and Report an Semantic Error
-	void CreateID(int type , char*rName,int rID,int ScopeNum);			// -- Create a Symbol given its type and Name 
+	void CreateID(int type , char*rName,int rID,int ScopeNum, char* Value, int LineNum);			// -- Create a Symbol given its type and Name 
 	void  getIDENTIFIER(char*rName,int ScopeNum);						//--  set Symbol Value to be Initilized. 
 	void usedIDENTIFIER(char*rName,int ScopeNum );					    //--  set that Symbol is Used as a RHS in any operation 
 	char * concatenateStr(char* str1,char*str2);							//--  a function to conctante two strings 
@@ -117,7 +117,7 @@ StartProgram :                  {printf("==========\nEmpty program\n");}    // C
 
 stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 																				$$=NULL;
-																				CreateID($1,$2,IDCount++,SCOPE_Number);
+																				CreateID($1,$2,IDCount++,SCOPE_Number, 0, yylineno+1);
 																				printf("==========\nDeclaration\n");
 																				setQuad(0," "," ",$2,QuadCount++);
 																			}
@@ -199,7 +199,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
     | type ID ASSIGN expression ';'                 
 													{
 														$$=NULL;
-														CreateID($1,$2,IDCount++,SCOPE_Number);
+														CreateID($1,$2,IDCount++,SCOPE_Number, $4->Value, yylineno+1);
 														if(checktypeIDENTIFER(getSymbolType($2),$4->Type))
 														{
 															getIDENTIFIER($2,SCOPE_Number);
@@ -268,7 +268,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
     
     | CONST type ID ASSIGN expression ';'         	{
 														$$=NULL;
-														CreateID($2+5,$3,IDCount++,SCOPE_Number);				// +5 to make it constant
+														CreateID($2+5,$3,IDCount++,SCOPE_Number, $5->Value, yylineno+1);				// +5 to make it constant
 														if(checktypeIDENTIFER(getSymbolType($3),$5->Type))
 														{
 															setQuad(0," "," ",$3,QuadCount++);
@@ -415,7 +415,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
     | type ID ASSIGN callFunction           
 											{	
 												$$=NULL;
-												CreateID($1,$2,IDCount++,SCOPE_Number);
+												CreateID($1,$2,IDCount++,SCOPE_Number, $4->Value, yylineno+1);
 												if(checktypeIDENTIFER(getSymbolType($2),$4->Type))
 												{
 													getIDENTIFIER($2,SCOPE_Number);
@@ -443,9 +443,9 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
     | ';'                                   {printf("==========\nEmpty statement\n");}
     ;
 
-create : ID ASSIGN INTEGER_NUMBER	{
+create : ID ASSIGN expression	{
 										// creates a variable and assigns a value to it
-										CreateID(0,$1 ,IDCount++,SCOPE_Number+1);
+										CreateID(0,$1 ,IDCount++,SCOPE_Number+1, $3->Value, yylineno+1);
 										getIDENTIFIER($1,SCOPE_Number);
 										char c[3] = {};
 										sprintf(c,"%d",$3);
@@ -540,12 +540,12 @@ resetCounter: 	{
 	;
 
 argList:  type ID ',' argList {
-											CreateID($1,$2,IDCount++,SCOPE_Number+1);
+											CreateID($1,$2,IDCount++,SCOPE_Number+1, 0, yylineno+1);
 											setQuad(0," "," ",$2,QuadCount++);
 											FuncArgTypes[ArgCounter++]=$1;// bec the scope is not incremeneted yet
 										}
 	      | type ID 		    {
-											CreateID($1,$2,IDCount++,SCOPE_Number+1);
+											CreateID($1,$2,IDCount++,SCOPE_Number+1, 0, yylineno+1);
 											setQuad(0," "," ",$2,QuadCount++);
 											FuncArgTypes[ArgCounter++]=$1;// bec the scope is not incremeneted yet
 										}
@@ -566,7 +566,7 @@ blockScope:
 ENUMscope:				// hne7tag n3adel fyha 7aga
             ID ASSIGN expression ',' ENUMscope 		{
 														// | type ID ASSIGN expression ';'   
-														CreateID(5,$1,IDCount++,SCOPE_Number);		// 5 for const integer
+														CreateID(5,$1,IDCount++,SCOPE_Number, $3->Value, yylineno+1);		// 5 for const integer
 														if(checktypeIDENTIFER(getSymbolType($1),5))
 														{
 															// getIDENTIFIER($1,SCOPE_Number);
@@ -601,7 +601,7 @@ ENUMscope:				// hne7tag n3adel fyha 7aga
                                                 printf("==========\nENUMscope type 1: has comma\n");
                                             }
     |       ID ASSIGN expression        {
-														CreateID(5,$1,IDCount++,SCOPE_Number);		// 5 for const integer
+														CreateID(5,$1,IDCount++,SCOPE_Number, $3->Value, yylineno+1);		// 5 for const integer
 														if(checktypeIDENTIFER(getSymbolType($1),5))
 														{
 															// getIDENTIFIER($1,SCOPE_Number);
@@ -1034,7 +1034,7 @@ elseIf: ELSE IF '(' elseIfQuadruple ')' blockScope elseIf	{$$=NULL;}
 
 %%
 
-void CreateID(int type , char*rName,int rID,int ScopeNum)
+void CreateID(int type , char*rName,int rID,int ScopeNum, char* Value, int LineNum)
 {
 	if(CheckIDENTIFYER(rName, ScopeNum))
 	{
@@ -1043,7 +1043,12 @@ void CreateID(int type , char*rName,int rID,int ScopeNum)
 	else
 	{
 		bool isConstant=(type>4)?true:false;
-		SymbolData* rSymbol=setSymbol(type,0,false,rName,!isConstant,ScopeNum);
+		SymbolData* rSymbol=setSymbol(type,0,false,rName,!isConstant,ScopeNum, Value, LineNum);
+		/* printf("int type is %d \n",type);
+		printf("char* rName is %s \n",rName);
+		printf("int rID is %d \n",rID);
+		printf("int ScopeNum is %d \n",ScopeNum); */
+		
 		if(isConstant)
 		{
 			rSymbol->Initilzation=true;
@@ -1067,7 +1072,7 @@ void CreateFunction(int type , char*rName,int rID,int ScopeNum,int rArgCounter,i
 	{
 		if(type==10)
 		{
-			SymbolData* rSymbol=setSymbol(type,0,false,rName,true,ScopeNum);
+			SymbolData* rSymbol=setSymbol(type,0,false,rName,true,ScopeNum, 0, yylineno+1);
 			setFuncArg(rArgCounter,ArrOfTypes,rSymbol);
 			pushSymbol(rID,rSymbol);
 			printf("Symbol Function is created with Name %s \n",rName);
@@ -1075,7 +1080,7 @@ void CreateFunction(int type , char*rName,int rID,int ScopeNum,int rArgCounter,i
 		else
 		{
 			bool isConstant=(type>4)?true:false;// There is something called a constant function
-			SymbolData* rSymbol=setSymbol(type,0,false,rName,!isConstant,ScopeNum);
+			SymbolData* rSymbol=setSymbol(type,0,false,rName,!isConstant,ScopeNum, 0, yylineno+1);
 			if(isConstant)
 			{
 				rSymbol->Initilzation=true;
@@ -1165,14 +1170,14 @@ char * concatenateStr(char* str1,char*str2)
 
 int main(int argc, char *argv[]) {
 	char *path = argv[1];
-	printf("path: %s",path);
+	/* printf("path: %s\n",path); */
 	char* finalPath1 = concatenateStr(path,".\\Outputs\\output.txt");
 	char* finalPath2 = concatenateStr(path,".\\Outputs\\Quadruples.txt");
-	char* finalPath3 = concatenateStr(path,".\\Outputs\\Assembly.txt");
+	/* char* finalPath3 = concatenateStr(path,".\\Outputs\\Assembly.txt"); */
 	char* finalPath4 = concatenateStr(path,".\\Outputs\\Symbol.txt");
 	outputFile=fopen(finalPath1,"w");
 	quadsFile=fopen(finalPath2,"w");
-	assemblyFile=fopen(finalPath3,"w");
+	/* assemblyFile=fopen(finalPath3,"w"); */
 	symbolFile=fopen(finalPath4,"w");
 	if(!yyparse()) 
 	{
@@ -1181,12 +1186,12 @@ int main(int argc, char *argv[]) {
 		DestroySymbolsList();
 		WriteQuads(quadsFile);
 		QuadNode*R=getTOP();
-		AssemblyGenerator(R,assemblyFile);
+		/* AssemblyGenerator(R,assemblyFile); */
 		fprintf(outputFile,"No errors occurred");
 		DestroyQuadsList();
 		fclose(outputFile);
 		fclose(quadsFile);
-		fclose(assemblyFile);
+		/* fclose(assemblyFile); */
 		fclose(symbolFile);
 		return 0;
 	}
@@ -1194,7 +1199,7 @@ int main(int argc, char *argv[]) {
 	{
 		fclose(outputFile);
 		fclose(quadsFile);
-		fclose(assemblyFile);
+		/* fclose(assemblyFile); */
 		fclose(symbolFile);
 		printf("\nParsing failed, error in line number:  %d\n",yylineno+1);
 		return 0;

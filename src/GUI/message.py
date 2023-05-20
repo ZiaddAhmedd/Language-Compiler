@@ -63,7 +63,7 @@ def run_code():
         number = error2.split(',')[0].split(' ')[-1] if error2.startswith('line number') else None
         number = int(number) - 1 if number else None
         if (number):
-            outputarea.insert(1.0, f'line {number}: syntax error')
+            outputarea.insert(1.0, f'line {number}: Error')
             highlight_line(textarea, number)
         else:
             textarea.tag_remove("highlight", "1.0", "end")
@@ -164,7 +164,7 @@ myMenu.add_cascade(label='Themes',menu=thememenu)
 
 myMenu.add_command(label='Clear',command=clear)
 
-myMenu.add_command(label='Run',command=run_code)
+myMenu.add_command(label='Compile',command=run_code)
 
 editFrame=Frame(root,bg='white')
 editFrame.place(x=60,y=0,height=500,relwidth=0.95)

@@ -31,26 +31,11 @@ void pushSymbol(int index, struct SymbolData *data) {
 }
 
 
-// SymbolData * getSymbol(int rID)
-// {
-//     // rID: the identifier name
-//     // returns the closest (last defined) variable's data
-// 	int mCount = 0;
-// 	SymbolNode * Walker = ListTop;
-// 	while (Walker)
-// 	{
-// 		if (Walker->ID == rID)
-// 		{
-// 			return Walker->DATA;
-// 		}
-// 	}
-// 	return NULL;
-// }
 
 
-SymbolNode *  getID(char * Identifiyer, int rBraceSCope)
+SymbolNode *  getID(char * Identifier, int rBraceSCope)
 {
-    // identifiyer: act as the variable (x from int x for example)
+    // Identifier: act as the variable (x from int x for example)
     // rBraceScope: the scope number where it is declared
     // returns the node itself (the node contains the data)
 	SymbolNode * Walker = ListTop;
@@ -58,7 +43,7 @@ SymbolNode *  getID(char * Identifiyer, int rBraceSCope)
 
 	while (Walker)
 	{
-		if ((strcmp(Identifiyer, Walker->DATA->IdentifierName)==0 ) && (Walker->DATA->BracesScope !=-1 ) )//means dead symbol 
+		if ((strcmp(Identifier, Walker->DATA->IdentifierName)==0 ) && (Walker->DATA->BracesScope !=-1 ) )//means dead symbol 
 		{
 			return Walker;
 		}
@@ -69,8 +54,9 @@ SymbolNode *  getID(char * Identifiyer, int rBraceSCope)
 	return NULL;
 }
 
-bool CheckIDENTIFYER(char * ID, int scopeNum)
+bool CheckIdentifier(char * ID, int scopeNum)
 {
+	// Checks that i can declare an identifier with this name
     // Checks that no two identifiers have the same name, in the same scope
 	SymbolNode * Walker = ListTop;
 
@@ -269,7 +255,7 @@ void setQuad(int Op, char* Arg1, char* Arg2,char*Result,int rID)
 
 void InsertQuadruple(QuadData*rD, int ID)
 {
-	// Insert from Begining (if empty) in the linked list
+	// normal list, where we insert at the end
 	if (!TopPtr)
 	{
 		// first node
@@ -307,6 +293,20 @@ QuadNode*getTOP()
 	// return the top of the list
 	return TopPtr;
 }
+
+
+void DestroyQuadsList()
+{
+	// for memory optimization
+	QuadNode *Walker = TopPtr;
+	while (Walker)
+	{
+		QuadNode *rD = Walker;
+		Walker = Walker->Next;
+		free(rD);
+	}
+}
+
 
 Reg CheckReg(); // return the free register	
 void SetReg(Reg x); // set the register to be used
@@ -348,6 +348,7 @@ void SetReg(Reg x)
 		}
 	}
 }
+
 Reg CheckReg()
 {
 	// return the free register
@@ -374,14 +375,3 @@ Reg CheckReg()
 	}
 }
 
-void DestroyQuadsList()
-{
-	// for memory optimization
-	QuadNode *Walker = TopPtr;
-	while (Walker)
-	{
-		QuadNode *rD = Walker;
-		Walker = Walker->Next;
-		free(rD);
-	}
-}

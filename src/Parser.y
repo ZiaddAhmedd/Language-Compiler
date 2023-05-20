@@ -115,16 +115,16 @@ StartProgram :                  {printf("==========\nEmpty program\n");}    // C
     | manyStatements
     ;
 
-stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
-																				$$=NULL;
-																				CreateID($1,$2,IDCount++,SCOPE_Number, 0, yylineno+1);
-																				printf("==========\nDeclaration\n");
-																				setQuad(0," "," ",$2,QuadCount++);
-																			}
+stmt: type ID ';'                               {
+													$$=NULL;
+													CreateID($1,$2,IDCount++,SCOPE_Number, 0, yylineno+1);
+													printf("==========\nDeclaration\n");
+													setQuad(0," "," ",$2,QuadCount++);
+												}
     
     | ID ASSIGN expression ';'                      {
 														$$=NULL;
-														if(getSymbolType($1)==$3->Type || (getSymbolType($1)-5)==$3->Type)		// -5 is the number of constant types (difference between int and const int is 5)
+														if(getSymbolType($1)==$3->Type || (getSymbolType($1)-5)==$3->Type || (getSymbolType($1) == ($3->Type - 5)))		// -5 is the number of constant types (difference between int and const int is 5)
 														{
 															getIDENTIFIER($1,SCOPE_Number);
 															printf("==========\nAssignment\n");
@@ -185,9 +185,9 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 														}
 														else 
 														{
-															if(getSymbolType($1)==-1)
+															if(getSymbolType($1)==-1)	// id was never declared
 															{
-															char* str1=concatenateStr($1," Has No Declread Type ");
+															char* str1=concatenateStr($1," Has No declared Type ");
 															ThrowError("",str1);
 															}
 															char* str1=concatenateStr($1," of Type");
@@ -301,7 +301,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 															itoa(whileNumber,c,10);
 															char m[3]={""};
 															char* val=concatenateStr(m,c);
-															setQuad(90,val,"","CloseWhile",QuadCount++);		// 90 3ndna hteb2a 3la 7asab el while b kam 3ndna
+															setQuad(90,val,"","CloseWhile",QuadCount++);
 															printf("==========\nWhile loop\n");
 															whileNumber++;
 														}   
@@ -331,7 +331,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 																						forLoopNumber++;
 																					}
 
-    | IF '(' ifQuadruple ')' blockScope  /* %prec IFX (m7tageen?)*/
+    | IF '(' ifQuadruple ')' blockScope  
 																		{
 																			$$=NULL;
 																			printf("==========\nIf statement\n");
@@ -402,7 +402,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 												if(checktypeIDENTIFER(getSymbolType($1),$3->Type))
 												{
 													getIDENTIFIER($1,SCOPE_Number);
-													setQuad(63,"",$3->Value,"FunctionCall",QuadCount++);
+													setQuad(63,"",$3->Value,$1,QuadCount++);
 													printf("==========\nFunction call with assignment\n");}
 												else 
 												{
@@ -419,7 +419,7 @@ stmt: type ID ';'     /* %prec IFX  (m7tageen?)*/                           {
 												if(checktypeIDENTIFER(getSymbolType($2),$4->Type))
 												{
 													getIDENTIFIER($2,SCOPE_Number);
-													setQuad(63,"",$4->Value,"FunctionCall",QuadCount++); 
+													setQuad(63,"",$4->Value,$2,QuadCount++); 
 													printf("==========\nFunction call with assignment and type\n");
 												}
 												else
@@ -449,7 +449,7 @@ create : ID ASSIGN expression	{
 										getIDENTIFIER($1,SCOPE_Number);
 										char c[3] = {};
 										sprintf(c,"%d",$3);
-										setQuad(1,strdup(c)," ",$1,QuadCount++);
+										setQuad(1,$3->Value," ",$1,QuadCount++);
 									};     
 
 function :  type ID '(' resetCounter argList ')' '{' scopeOpen {functionName= $2;} funcQuadruple manyStatements RETURN  expression  ';'   '}'  scopeClose  {
@@ -990,17 +990,47 @@ caseDefault:
               ;
     ;
 
-whileQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(whileNumber,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(20,strdup(c),val,"OpenWhile1",QuadCount++);} 
-		expression {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(whileNumber,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(20,strdup(c),val,"OpenWhile2",QuadCount++);TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
+whileQuadruple: {char c[3] = {};
+				sprintf(c,"%d",SCOPE_Number);
+				char c2[3] = {};
+				itoa(whileNumber,c,10);		// 10 means decimal (base 10)
+				char m[3]={""};
+				char* val=concatenateStr(m,c);
+				setQuad(20,strdup(c),val,"OpenWhile1",QuadCount++);		// label for the beginning of the loop, to iterate (in assembler)
+				} 
+		expression {
+			char c[3] = {};
+			sprintf(c,"%d",SCOPE_Number);
+			char c2[3] = {};
+			itoa(whileNumber,c,10);
+			char m[3]={""};
+			char* val=concatenateStr(m,c);
+			setQuad(20,strdup(c),val,"OpenWhile2",QuadCount++);		// a label for the end of the while loop (to skip the while if condition is false, in assembler)
+			TempCounter=0;
+			TempIsUsed=false;
+			}//to prevent assignning a temp to a variable
 		;
 
-repeatQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(repeatUntilNumber,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(22,strdup(c),val,"OpenrepeatUntil",QuadCount++);}
+repeatQuadruple: {char c[3] = {};
+				sprintf(c,"%d",SCOPE_Number);
+				char c2[3] = {};
+				itoa(repeatUntilNumber,c,10);
+				char m[3]={""};
+				char* val=concatenateStr(m,c);
+				setQuad(22,strdup(c),val,"OpenrepeatUntil",QuadCount++);
+				}
 		;
 
 inRepeatUntil: expression {TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
 		;
 
-enumQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(enumNumber,c,10); char m[3]={""}; char* val=concatenateStr(m,c); setQuad(23,strdup(c),val,"OpenEnum",QuadCount++);}
+enumQuadruple: {char c[3] = {};
+				sprintf(c,"%d",SCOPE_Number);
+				char c2[3] = {};
+				itoa(enumNumber,c,10);
+				char m[3]={""};
+				char* val=concatenateStr(m,c);
+				setQuad(23,strdup(c),val,"OpenEnum",QuadCount++);}
 		;
 
 forQuadruple: {char c[3] = {};sprintf(c,"%d",SCOPE_Number); char c2[3] = {}; itoa(forLoopNumber,c2,10); char m[3]={""}; char* val=concatenateStr(m,c2); setQuad(21,strdup(c),val,"OpenForLoop1",QuadCount++);} expression {char c[3] = {};sprintf(c,"%d",SCOPE_Number);char c2[3] = {}; itoa(forLoopNumber,c2,10); char m[3]={""}; char* val=concatenateStr(m,c2); setQuad(21,strdup(c),val,"OpenForLoop2",QuadCount++);TempCounter=0;TempIsUsed=false;}//to prevent assignning a temp to a variable
@@ -1036,7 +1066,7 @@ elseIf: ELSE IF '(' elseIfQuadruple ')' blockScope elseIf	{$$=NULL;}
 
 void CreateID(int type , char*rName,int rID,int ScopeNum, char* Value, int LineNum)
 {
-	if(CheckIDENTIFYER(rName, ScopeNum))
+	if(CheckIdentifier(rName, ScopeNum))
 	{
 		ThrowError("Already Declared IDENTIFIER with Name ",rName);
 	}
@@ -1064,18 +1094,19 @@ void CreateID(int type , char*rName,int rID,int ScopeNum, char* Value, int LineN
 }
 void CreateFunction(int type , char*rName,int rID,int ScopeNum,int rArgCounter,int *ArrOfTypes)
 {
-	if(CheckIDENTIFYER(rName, ScopeNum))
+	if(CheckIdentifier(rName, ScopeNum))
 	{
 		ThrowError("Already Declared IDENTIFIER with Name ",rName);
 	}
 	else
 	{
-		if(type==10)
+		if(type==10)		//void function
 		{
+			
 			SymbolData* rSymbol=setSymbol(type,0,false,rName,true,ScopeNum, 0, yylineno+1);
 			setFuncArg(rArgCounter,ArrOfTypes,rSymbol);
 			pushSymbol(rID,rSymbol);
-			printf("Symbol Function is created with Name %s \n",rName);
+			printf("Symbol void Function is created with Name %s \n",rName);
 		}
 		else
 		{
@@ -1147,6 +1178,8 @@ void ThrowError(char *Message, char *rVar)
 	printf("line number: %d, %s : %s\n", yylineno+1,Message,rVar);
 	fprintf(symbolFile, "Table was emptied as the program has compilation errors\n");
  	fprintf(symbolFile, "line number: %d, %s : %s\n", yylineno+1,Message,rVar);
+	yylineno++;
+	yyerror(Message);
  	exit(0);
 }
 

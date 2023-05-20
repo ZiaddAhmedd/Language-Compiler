@@ -79,10 +79,10 @@ struct SymbolData* setSymbol(int type, int init, bool used, char * name,bool Mod
 void pushSymbol(int ID, struct SymbolData* data);// to Insert a node in list
 
 
-// struct SymbolData* getSymbol(int rID);// Return a Symbol Entity given his ID in LIST
+
 
 SymbolNode * getID(char * Identifiyer, int rBraceSCope);// given Variable NAME AND SCOPE return ID
-bool CheckIDENTIFYER(char * ID, int scopeNum);//check weather identifuer is defined before or not
+bool CheckIdentifier(char * ID, int scopeNum);//check weather identifuer is defined before or not
 
 int getSymbolType(char*rID);
 void setFuncArg(int ArgCount, int*ArgTypes, SymbolData *rD);

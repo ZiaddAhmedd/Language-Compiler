@@ -1,1 +1,2 @@
-No errors occurred
+Error, could not parse quadruples
+line number: 2, Already Declared IDENTIFIER with Name  : y

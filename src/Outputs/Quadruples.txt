@@ -1,5 +1,0 @@
-OpCode: 0  Arg1:    Arg2:   Result: x 
-OpCode: 0  Arg1:    Arg2:   Result: x 
-OpCode: 0  Arg1:    Arg2:   Result: y 
-OpCode: 0  Arg1:    Arg2:   Result: y 
-OpCode: 0  Arg1:    Arg2:   Result: y 

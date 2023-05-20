@@ -1,18 +1,2 @@
-Used Identifiers :- 
-
-Unused Identifiers :- 
-y ---> type: Integer, value: (null), Line: 3
-y ---> type: Integer, value: (null), Line: 3
-y ---> type: Integer, value: (null), Line: 3
-x ---> type: Integer, value: (null), Line: 2
-x ---> type: Integer, value: (null), Line: 1
-
-Initialized Identifiers :- 
-
-Uninitialized Identifiers :- 
-y ---> type: Integer, value: (null), Line: 3
-y ---> type: Integer, value: (null), Line: 3
-y ---> type: Integer, value: (null), Line: 3
-x ---> type: Integer, value: (null), Line: 2
-x ---> type: Integer, value: (null), Line: 1
-
+Table was emptied as the program has compilation errors
+line number: 2, Already Declared IDENTIFIER with Name  : y
